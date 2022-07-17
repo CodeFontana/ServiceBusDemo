@@ -1,0 +1,33 @@
+﻿@page "/"
+@inject IQueueService Queue
+
+<PageTitle>Service Bus - Demo</PageTitle>
+
+<section>
+    <EditForm Model="@_person" OnValidSubmit="PushMessage">
+        <DataAnnotationsValidator/>
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="12" sm="4">
+                <MudCard>
+                    <MudCardContent>
+                        <MudTextField Label="First name" @bind-Value="_person.FirstName" For="@(() => _person.FirstName)" />
+                        <MudTextField Label="Last name" @bind-Value="_person.LastName" For="@(() => _person.LastName)" />
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Send</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </EditForm>
+</section>
+
+@code {
+    private PersonModel _person = new();
+
+    private async Task PushMessage()
+    {
+        await Queue.SendMessageAsync(_person, "personqueue");
+        _person = new();
+    }
+}
