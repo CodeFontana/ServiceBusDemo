@@ -13,7 +13,7 @@ builder.Services.AddMudServices();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAzureClients(options =>
 {
-    options.AddServiceBusClient(builder.Configuration.GetConnectionString("ServiceBus"));
+    options.AddServiceBusClient(builder.Configuration.GetConnectionString("AzureServiceBus"));
 });
 builder.Services.AddTransient<IQueueService, QueueService>();
 

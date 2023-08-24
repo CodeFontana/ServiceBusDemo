@@ -36,7 +36,7 @@ internal class Program
                 {
                     services.AddAzureClients(options =>
                     {
-                        options.AddServiceBusClient(hostContext.Configuration.GetConnectionString("ServiceBus"));
+                        options.AddServiceBusClient(hostContext.Configuration.GetConnectionString("AzureServiceBus"));
                     });
                     services.AddHostedService<App>();
                 })
