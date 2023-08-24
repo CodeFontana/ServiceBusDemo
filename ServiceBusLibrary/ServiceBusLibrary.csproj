@@ -1,17 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <UserSecretsId>5be6f8b9-7d39-49a7-9534-aa04f981dfef</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.9.0" />
-    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="5.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.1" />
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.16.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.1" />
   </ItemGroup>
 
 </Project>
