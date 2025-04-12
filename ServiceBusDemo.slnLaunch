@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "BlazorUI + Console",
+    "Projects": [
+      {
+        "Path": "ConsoleUI\\ConsoleUI.csproj",
+        "Action": "Start",
+        "DebugTarget": "ConsoleUI"
+      },
+      {
+        "Path": "BlazorUI\\BlazorUI.csproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "https"
+      }
+    ]
+  }
+]

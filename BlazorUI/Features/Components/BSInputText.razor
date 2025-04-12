@@ -1,0 +1,129 @@
+﻿@using System.Linq.Expressions
+
+@if (InputType == InputType.Standard)
+{
+    <div class="@($"{Class}")">
+        <label for="@Id" class="form-label mb-0" style="@($"width: {LabelWidth}px;")">@Label</label>
+        <InputText id="@Id"
+                   type="@Type"
+                   class="form-control"
+                   placeholder="@Placeholder"
+                   Value="@Value"
+                   ValueChanged="ValueChanged"
+                   ValueExpression="ValueExpression"
+                   @oninput="OnInput"
+                   @onfocus="OnFocus"
+                   @onblur="OnBlur"
+                   @onclick="OnClick"
+                   @onchange="OnChange"
+                   @onmouseover="OnMouseOver"
+                   @onmouseout="OnMouseOut"
+                   Disabled="@Disabled" />
+    </div>
+}
+else if (InputType == InputType.InputGroup)
+{
+    <div class="@($"input-group {Class}")">
+        <span class="input-group-text" style="@($"width: {LabelWidth}px;")">@Label</span>
+        <InputText id="@Id"
+                   type="@Type"
+                   class="form-control"
+                   placeholder="@Placeholder"
+                   Value="@Value"
+                   ValueChanged="ValueChanged"
+                   ValueExpression="ValueExpression"
+                   @oninput="OnInput"
+                   @onfocus="OnFocus"
+                   @onblur="OnBlur"
+                   @onclick="OnClick"
+                   @onchange="OnChange"
+                   @onmouseover="OnMouseOver"
+                   @onmouseout="OnMouseOut"
+                   Disabled="@Disabled" />
+    </div>
+}
+else if (InputType == InputType.FloatingLabel)
+{
+    <div class="@($"form-floating {Class}")">
+        <InputText id="@Id"
+                   type="@Type"
+                   class="form-control"
+                   placeholder="@Placeholder"
+                   Value="@Value"
+                   ValueChanged="ValueChanged"
+                   ValueExpression="ValueExpression"
+                   @oninput="OnInput"
+                   @onfocus="OnFocus"
+                   @onblur="OnBlur"
+                   @onclick="OnClick"
+                   @onchange="OnChange"
+                   @onmouseover="OnMouseOver"
+                   @onmouseout="OnMouseOut"
+                   Disabled="@Disabled" />
+        <label for="@Id">@Label</label>
+    </div>
+}
+
+@if (EditContext != null)
+{
+    <ValidationMessage For="@ValueExpression" class="text-danger validation-spacing" />
+}
+
+@code {
+    [CascadingParameter]
+    private EditContext? EditContext { get; set; }
+
+    [Parameter]
+    public InputType InputType { get; set; } = InputType.InputGroup;
+
+    [Parameter]
+    public string Type { get; set; } = "text";
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string Label { get; set; }
+
+    [Parameter]
+    public ushort LabelWidth { get; set; } = 150;
+
+    [Parameter, EditorRequired]
+    public required string Id { get; set; }
+
+    [Parameter]
+    public string? Placeholder { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<string>>? ValueExpression { get; set; }
+
+    [Parameter]
+    public EventCallback<ChangeEventArgs> OnInput { get; set; }
+
+    [Parameter]
+    public EventCallback<FocusEventArgs> OnFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<FocusEventArgs> OnBlur { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    [Parameter]
+    public EventCallback<ChangeEventArgs> OnChange { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnMouseOver { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnMouseOut { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+}
