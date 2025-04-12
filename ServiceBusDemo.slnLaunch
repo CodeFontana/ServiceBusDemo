@@ -13,5 +13,20 @@
         "DebugTarget": "https"
       }
     ]
+  },
+  {
+    "Name": "BlazorUI + Function",
+    "Projects": [
+      {
+        "Path": "FunctionApp\\FunctionApp.csproj",
+        "Action": "Start",
+        "DebugTarget": "FunctionApp"
+      },
+      {
+        "Path": "BlazorUI\\BlazorUI.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      }
+    ]
   }
 ]
