@@ -60,8 +60,6 @@ public class App : IHostedService
     {
         try
         {
-            ServiceBusReceiver receiver = _client.CreateReceiver(queueName);
-
             ServiceBusProcessorOptions messageHandlerOptions = new()
             {
                 MaxConcurrentCalls = 1,
