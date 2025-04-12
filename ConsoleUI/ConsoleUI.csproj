@@ -2,19 +2,19 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>disable</Nullable>
 		<UserSecretsId>a8c26e96-d0b2-4794-b8be-6d9a6a07e2f2</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Azure.Messaging.ServiceBus" Version="7.16.1" />
-		<PackageReference Include="CodeFoxtrot.FileLogger" Version="1.0.7" />
-		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.0" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
+		<PackageReference Include="Azure.Messaging.ServiceBus" Version="7.19.0" />
+		<PackageReference Include="CodeFoxtrot.FileLogger" Version="1.0.9" />
+		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.11.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.4" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.4" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.4" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,0 +1,33 @@
+﻿@inject NavigationManager NavMan
+
+<nav class="navbar navbar-dark navbar-expand d-flex fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand p-0" href="#">
+            <img src="img/Blazor.png" width="30" height="30" class="mx-2" />
+            Blazor
+        </a>
+
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto d-none d-md-flex">
+                <li class="nav-item">
+                    <NavLink class="nav-link" Match="NavLinkMatch.All" href="">Home</NavLink>
+                </li>
+            </ul>
+            <button id="sidebarButton" type="button" class="d-flex d-md-none hamburger-button ms-auto">
+                <div class="hamburger rounded-lg">
+                    <div class="opacity-75">
+                        <div class="line"></div>
+                        <div class="line"></div>
+                        <div class="line"></div>
+                    </div>
+                </div>
+            </button>
+        </div>
+
+        <i class="theme-switch me-2 text-light fs-4 bi bi-sun-fill"></i>
+    </div>
+</nav>
+
+@code {
+    
+}
