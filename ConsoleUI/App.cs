@@ -1,8 +1,11 @@
-﻿using Azure.Messaging.ServiceBus;
+﻿using System.Text;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Text;
+using ServiceBusLibrary.Interfaces;
+using ProcessErrorEventArgs = ServiceBusLibrary.Services.ProcessErrorEventArgs;
+using ProcessMessageEventArgs = ServiceBusLibrary.Services.ProcessMessageEventArgs;
 
 namespace ConsoleUI;
 public class App : IHostedService
@@ -10,12 +13,12 @@ public class App : IHostedService
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
     private readonly IConfiguration _config;
     private readonly ILogger<App> _logger;
-    private readonly ServiceBusClient _client;
+    private readonly IServiceBusClient _client;
 
     public App(IHostApplicationLifetime hostApplicationLifetime,
                IConfiguration configuration,
                ILogger<App> logger,
-               ServiceBusClient client)
+               IServiceBusClient client)
     {
         _hostApplicationLifetime = hostApplicationLifetime;
         _config = configuration;
@@ -66,11 +69,12 @@ public class App : IHostedService
                 AutoCompleteMessages = false
             };
 
-            await using ServiceBusProcessor processor = _client.CreateProcessor(queueName, messageHandlerOptions);
+            await using IServiceBusProcessor processor = _client.CreateProcessor(queueName, messageHandlerOptions);
             processor.ProcessMessageAsync += MessageHandler;
             processor.ProcessErrorAsync += ErrorHandler;
             await processor.StartProcessingAsync();
             Console.ReadLine();
+            await processor.StopProcessingAsync();
         }
         catch (Exception ex)
         {

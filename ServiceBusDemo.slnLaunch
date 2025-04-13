@@ -9,7 +9,7 @@
       },
       {
         "Path": "BlazorUI\\BlazorUI.csproj",
-        "Action": "StartWithoutDebugging",
+        "Action": "Start",
         "DebugTarget": "https"
       }
     ]

@@ -1,25 +1,34 @@
 using BlazorUI.Features;
 using BlazorUI.Services;
-using Microsoft.Extensions.Azure;
 using ServiceBusLibrary.Interfaces;
 using ServiceBusLibrary.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents()
-    .AddHubOptions(options =>
-    {
-        options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
-        options.HandshakeTimeout = TimeSpan.FromSeconds(30);
-    });
+   .AddInteractiveServerComponents()
+   .AddHubOptions(options =>
+   {
+       options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
+       options.HandshakeTimeout = TimeSpan.FromSeconds(30);
+   });
 builder.Services.AddResponseCompression();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICookieService, CookieService>();
-builder.Services.AddAzureClients(options =>
+
+if (bool.TryParse(builder.Configuration["ServiceBus:UseEmulator"], out bool useEmulator) && useEmulator)
 {
-    options.AddServiceBusClient(builder.Configuration.GetConnectionString("AzureServiceBus"));
-});
+    builder.Services.AddSingleton<IServiceBusClient>(sp =>
+        new LocalServiceBusClient(builder.Configuration["ConnectionStrings:AzureServiceBus.Local"]
+            ?? throw new Exception("Missing 'ConnectionStrings:AzureServiceBus' in configuration")));
+}
+else
+{
+    builder.Services.AddSingleton<IServiceBusClient>(sp =>
+        new AzureServiceBusClient(builder.Configuration["ConnectionStrings:AzureServiceBus.Azure"]
+            ?? throw new Exception("Missing 'ConnectionStrings:AzureServiceBus' in configuration")));
+}
+
 builder.Services.AddTransient<IQueueService, QueueService>();
 WebApplication app = builder.Build();
 
@@ -35,5 +44,5 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 app.MapRazorComponents<App>()
-   .AddInteractiveServerRenderMode();
+  .AddInteractiveServerRenderMode();
 app.Run();

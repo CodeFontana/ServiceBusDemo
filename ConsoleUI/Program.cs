@@ -1,5 +1,4 @@
 ﻿using FileLoggerLibrary;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,7 +15,8 @@ internal class Program
         try
         {
             string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            bool isDevelopment = string.IsNullOrEmpty(env) || env.ToLower() == "development";
+            bool isDevelopment = string.IsNullOrEmpty(env) 
+                || env.Equals("development", StringComparison.CurrentCultureIgnoreCase);
 
             await Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration(config =>
@@ -34,10 +34,16 @@ internal class Program
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
-                    services.AddAzureClients(options =>
+                    if (bool.TryParse(hostContext.Configuration["ServiceBus:UseEmulator"], out bool useEmulator) && useEmulator)
                     {
-                        options.AddServiceBusClient(hostContext.Configuration.GetConnectionString("AzureServiceBus"));
-                    });
+                        services.AddSingleton<IServiceBusClient>(sp =>
+                            new LocalServiceBusClient(hostContext.Configuration["ConnectionStrings:AzureServiceBus.Local"]));
+                    }
+                    else
+                    {
+                        services.AddSingleton<IServiceBusClient>(sp =>
+                            new AzureServiceBusClient(hostContext.Configuration["ConnectionStrings:AzureServiceBus.Azure"]));
+                    }
                     services.AddHostedService<App>();
                 })
                 .RunConsoleAsync();
