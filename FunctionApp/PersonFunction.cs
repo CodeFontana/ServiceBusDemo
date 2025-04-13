@@ -37,7 +37,7 @@ public sealed class PersonFunction
         }
         catch (JsonException ex)
         {
-            _logger.LogError($"Failed to deserialize message: {ex.Message}");
+            _logger.LogError("Failed to deserialize message: {message}", ex.Message);
         }
     }
 }

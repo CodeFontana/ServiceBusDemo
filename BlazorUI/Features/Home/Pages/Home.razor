@@ -14,7 +14,7 @@
             <div class="card-body">
                 <EditForm Enhance id="personForm" FormName="personForm" Model="@Person" OnValidSubmit="PushMessage">
                     <DataAnnotationsValidator />
-                    <BSInputText Id="firstName" @bind-Value="Person.FirstName" Label="First Name" />
+                    <BSInputText Id="firstName" @bind-Value="Person!.FirstName" Label="First Name" />
                     <BSInputText Id="lastName" Class="my-2" @bind-Value="Person.LastName" Label="Last Name" />
                     <button class="btn btn-primary" type="submit">Submit</button>
                 </EditForm>
@@ -27,7 +27,7 @@
     [SupplyParameterFromForm(FormName = "personForm")]
     public PersonModel? Person { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         Person ??= new();
     }
