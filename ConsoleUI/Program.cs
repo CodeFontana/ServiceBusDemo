@@ -37,12 +37,12 @@ internal class Program
                     if (bool.TryParse(hostContext.Configuration["ServiceBus:UseEmulator"], out bool useEmulator) && useEmulator)
                     {
                         services.AddSingleton<IServiceBusClient>(sp =>
-                            new LocalServiceBusClient(hostContext.Configuration["ConnectionStrings:AzureServiceBus.Local"]));
+                            new LocalServiceBusClient(hostContext.Configuration["ConnectionStrings:Local"]));
                     }
                     else
                     {
                         services.AddSingleton<IServiceBusClient>(sp =>
-                            new AzureServiceBusClient(hostContext.Configuration["ConnectionStrings:AzureServiceBus.Azure"]));
+                            new AzureServiceBusClient(hostContext.Configuration["ConnectionStrings:Azure"]));
                     }
                     services.AddHostedService<App>();
                 })

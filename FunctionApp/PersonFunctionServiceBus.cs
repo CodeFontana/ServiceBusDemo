@@ -6,18 +6,18 @@ using ServiceBusLibrary.Models;
 
 namespace FunctionApp;
 
-public sealed class PersonFunction
+internal sealed class PersonFunctionServiceBus
 {
-    private readonly ILogger<PersonFunction> _logger;
+    private readonly ILogger<PersonFunctionServiceBus> _logger;
 
-    public PersonFunction(ILogger<PersonFunction> logger)
+    public PersonFunctionServiceBus(ILogger<PersonFunctionServiceBus> logger)
     {
         _logger = logger;
     }
 
-    [Function(nameof(PersonFunction))]
+    [Function(nameof(PersonFunctionServiceBus))]
     public async Task Run(
-        [ServiceBusTrigger("personQueue", Connection = "AzureServiceBus")]
+        [ServiceBusTrigger("personQueue", Connection = "ConnectionStrings:Azure")]
         ServiceBusReceivedMessage message,
         ServiceBusMessageActions messageActions)
     {
