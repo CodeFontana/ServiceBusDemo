@@ -17,12 +17,12 @@ public class QueueService : IQueueService
         _client = client;
     }
 
-    public async Task SendMessageAsync<T>(T ServiceBusMessage, string queueName)
+    public async Task SendMessageAsync<T>(T serviceBusMessage, string queueName)
     {
         try
         {
             IServiceBusSender sender = _client.CreateSender(queueName);
-            string messageBody = JsonSerializer.Serialize(ServiceBusMessage);
+            string messageBody = JsonSerializer.Serialize(serviceBusMessage);
             ServiceBusMessage message = new()
             { 
                 Body = Encoding.UTF8.GetBytes(messageBody) 
@@ -32,6 +32,25 @@ public class QueueService : IQueueService
         catch (Exception ex)
         {
             _logger.LogError("Failed to send message -- {ex.Message}", ex.Message);
+        }
+    }
+
+    public async Task SendMessageToTopicAsync<T>(T serviceBusMessage, string topicName)
+    {
+        try
+        {
+            IServiceBusSender sender = _client.CreateSender(topicName, isTopic: true);
+            string messageBody = JsonSerializer.Serialize(serviceBusMessage);
+            ServiceBusMessage message = new()
+            {
+                Body = Encoding.UTF8.GetBytes(messageBody)
+            };
+            await sender.SendMessageAsync(message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failed to send message to topic: {Message}", ex.Message);
+            throw;
         }
     }
 }

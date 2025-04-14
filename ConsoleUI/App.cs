@@ -15,6 +15,10 @@ public class App : IHostedService
     private readonly ILogger<App> _logger;
     private readonly IServiceBusClient _client;
 
+    private IServiceBusProcessor? _queueProcessor;
+    private IServiceBusProcessor? _topicProcessor;
+    private readonly CancellationTokenSource _cts = new();
+
     public App(IHostApplicationLifetime hostApplicationLifetime,
                IConfiguration configuration,
                ILogger<App> logger,
@@ -34,7 +38,11 @@ public class App : IHostedService
             {
                 await Task.Yield(); // https://github.com/dotnet/runtime/issues/36063
                 await Task.Delay(1000); // Additional delay for Microsoft.Hosting.Lifetime messages
-                await ExecuteAsync();
+                await ExecuteAsync(_cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancellation is triggered
             }
             catch (Exception ex)
             {
@@ -49,17 +57,39 @@ public class App : IHostedService
         return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
+        _cts.Cancel();
+
+        if (_queueProcessor != null)
+        {
+            await _queueProcessor.StopProcessingAsync();
+            await _queueProcessor.DisposeAsync();
+        }
+
+        if (_topicProcessor != null)
+        {
+            await _topicProcessor.StopProcessingAsync();
+            await _topicProcessor.DisposeAsync();
+        }
+
+        _cts.Dispose();
     }
 
-    public async Task ExecuteAsync()
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        await ReceiveMessageAsync("personqueue");
+        // Start both processors
+        await Task.WhenAll(
+            ReceiveMessageFromQueueAsync("personqueue", cancellationToken),
+            ReceiveMessageFromTopicAsync("personTopic", "sub1", cancellationToken)
+        );
+
+        // Wait for user input
+        _logger.LogInformation("Press ENTER to stop processing messages...");
+        await Task.Run(() => Console.ReadLine(), cancellationToken);
     }
 
-    public async Task ReceiveMessageAsync(string queueName)
+    public async Task ReceiveMessageFromQueueAsync(string queueName, CancellationToken cancellationToken)
     {
         try
         {
@@ -69,12 +99,17 @@ public class App : IHostedService
                 AutoCompleteMessages = false
             };
 
-            await using IServiceBusProcessor processor = _client.CreateProcessor(queueName, messageHandlerOptions);
-            processor.ProcessMessageAsync += MessageHandler;
-            processor.ProcessErrorAsync += ErrorHandler;
-            await processor.StartProcessingAsync();
-            Console.ReadLine();
-            await processor.StopProcessingAsync();
+            _queueProcessor = _client.CreateProcessor(queueName, messageHandlerOptions);
+            _queueProcessor.ProcessMessageAsync += MessageHandler;
+            _queueProcessor.ProcessErrorAsync += ErrorHandler;
+            await _queueProcessor.StartProcessingAsync();
+
+            // Keep the processor running until cancellation
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when cancellation is triggered
         }
         catch (Exception ex)
         {
@@ -93,5 +128,43 @@ public class App : IHostedService
     {
         _logger.LogError(args.Exception, "Message handler exception -- Source={source}, Namespace={space}, EntityPath={path}", args.ErrorSource, args.FullyQualifiedNamespace, args.EntityPath);
         return Task.CompletedTask;
+    }
+
+    private async Task ReceiveMessageFromTopicAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
+    {
+        try
+        {
+            ServiceBusProcessorOptions options = new()
+            {
+                MaxConcurrentCalls = 1,
+                AutoCompleteMessages = false
+            };
+
+            _topicProcessor = _client.CreateProcessor(topicName, subscriptionName, options);
+            _topicProcessor.ProcessMessageAsync += async args =>
+            {
+                string messageBody = Encoding.UTF8.GetString(args.Message.Body);
+                _logger.LogInformation($"Received message from topic {topicName} subscription {subscriptionName}: \n{messageBody}");
+                await args.CompleteMessageAsync(args.Message);
+            };
+            _topicProcessor.ProcessErrorAsync += args =>
+            {
+                _logger.LogError($"Error processing message from topic {topicName} subscription {subscriptionName}: {args.Exception.Message}");
+                return Task.CompletedTask;
+            };
+
+            await _topicProcessor.StartProcessingAsync();
+
+            // Keep the processor running until cancellation
+            await Task.Delay(Timeout.Infinite, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when cancellation is triggered
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Failed to process subscription: {Message}", ex.Message);
+        }
     }
 }

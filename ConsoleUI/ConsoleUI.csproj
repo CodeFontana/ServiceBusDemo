@@ -4,7 +4,7 @@
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>disable</Nullable>
+		<Nullable>enable</Nullable>
 		<UserSecretsId>a8c26e96-d0b2-4794-b8be-6d9a6a07e2f2</UserSecretsId>
 	</PropertyGroup>
 
