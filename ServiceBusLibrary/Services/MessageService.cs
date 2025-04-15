@@ -6,12 +6,12 @@ using ServiceBusMessage = ServiceBusLibrary.Models.ServiceBusMessage;
 
 namespace ServiceBusLibrary.Services;
 
-public class QueueService : IQueueService
+public class MessageService : IMessageService
 {
-    private readonly ILogger<QueueService> _logger;
+    private readonly ILogger<MessageService> _logger;
     private readonly IServiceBusClient _client;
 
-    public QueueService(ILogger<QueueService> logger, IServiceBusClient client)
+    public MessageService(ILogger<MessageService> logger, IServiceBusClient client)
     {
         _logger = logger;
         _client = client;

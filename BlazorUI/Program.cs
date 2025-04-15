@@ -29,7 +29,7 @@ else
             ?? throw new Exception("Missing 'ConnectionStrings:Azure' in configuration")));
 }
 
-builder.Services.AddTransient<IQueueService, QueueService>();
+builder.Services.AddTransient<IMessageService, MessageService>();
 WebApplication app = builder.Build();
 
 app.UseExceptionHandler("/Error", createScopeForErrors: true);

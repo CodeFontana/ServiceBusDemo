@@ -14,7 +14,7 @@ internal class Program
     {
         try
         {
-            string env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            string? env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             bool isDevelopment = string.IsNullOrEmpty(env) 
                 || env.Equals("development", StringComparison.CurrentCultureIgnoreCase);
 
@@ -37,12 +37,16 @@ internal class Program
                     if (bool.TryParse(hostContext.Configuration["ServiceBus:UseEmulator"], out bool useEmulator) && useEmulator)
                     {
                         services.AddSingleton<IServiceBusClient>(sp =>
-                            new LocalServiceBusClient(hostContext.Configuration["ConnectionStrings:Local"]));
+                            new LocalServiceBusClient(
+                                hostContext.Configuration["ConnectionStrings:Local"]
+                                ?? throw new Exception("Missing ConnectionStrings:Local in app configuration")));
                     }
                     else
                     {
                         services.AddSingleton<IServiceBusClient>(sp =>
-                            new AzureServiceBusClient(hostContext.Configuration["ConnectionStrings:Azure"]));
+                            new AzureServiceBusClient(
+                                hostContext.Configuration["ConnectionStrings:Azure"]
+                                ?? throw new Exception("Missing ConnectionStrings:Azure in app configuration")));
                     }
                     services.AddHostedService<App>();
                 })
