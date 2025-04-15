@@ -2,6 +2,6 @@
 
 public interface IMessageService
 {
-    Task SendMessageAsync<T>(T ServiceBusMessage, string queueName);
+    Task SendMessageToQueueAsync<T>(T ServiceBusMessage, string queueName);
     Task SendMessageToTopicAsync<T>(T message, string topicName);
 }

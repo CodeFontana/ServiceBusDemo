@@ -17,7 +17,7 @@ public class MessageService : IMessageService
         _client = client;
     }
 
-    public async Task SendMessageAsync<T>(T serviceBusMessage, string queueName)
+    public async Task SendMessageToQueueAsync<T>(T serviceBusMessage, string queueName)
     {
         try
         {

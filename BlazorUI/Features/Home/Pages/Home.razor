@@ -34,7 +34,7 @@
 
     private async Task PushMessage()
     {
-        await Queue.SendMessageAsync(Person, "personqueue");
+        await Queue.SendMessageToQueueAsync(Person, "personqueue");
         await Queue.SendMessageToTopicAsync(Person, "personTopic");
         Person = new();
     }
