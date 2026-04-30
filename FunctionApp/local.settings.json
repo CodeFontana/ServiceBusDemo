@@ -6,6 +6,6 @@
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
         "ServiceBus:UseEmulator": true,
         "ConnectionStrings:Local": "C:\\ServiceBus",
-        "ConnectionStrings:Azure": "Endpoint=sb://codefoxtrot.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=U9ybayjGJpFFazJepphbXMi43f7DoAAkk+ASbKFGBW8="
+        "ConnectionStrings:Azure": ""
     }
 }
