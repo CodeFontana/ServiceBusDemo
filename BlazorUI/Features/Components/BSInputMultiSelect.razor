@@ -1,0 +1,353 @@
+﻿@using System.Linq.Expressions
+@typeparam T where T : notnull
+@attribute [DiscoverCollocatedJS]
+@inject JSElementReferenceScope Refs
+
+@*
+Sample usage:
+<h4 class="mt-3">Skills</h4>
+
+<div class="mb-3">
+    <BSInputMultiSelect T="string"
+                        Id="msSkillsStd"
+                        Class="mb-3"
+                        Label="Skills"
+                        InputType="InputType.Standard"
+                        @bind-Value="_selectedSkills"
+                        AllowSelectAll="true"
+                        SelectAllText="All Skills"
+                        AllowFilter="true"
+                        Placeholder="Select skills...">
+        <BSMultiOption T="string" Value="@("CSharp")" Text="C#" />
+        <BSMultiOption T="string" Value="@("JavaScript")" Text="JavaScript" />
+        <BSMultiOption T="string" Value="@("TypeScript")" Text="TypeScript" />
+        <BSMultiOption T="string" Value="@("Python")" Text="Python" />
+        <BSMultiOption T="string" Value="@("Blazor")" Text="Blazor" />
+        <BSMultiOption T="string" Value="@("SQL")" Text="SQL" />
+        <BSMultiOption T="string" Value="@("Azure")" Text="Azure" />
+        <BSMultiOption T="string" Value="@("Docker")" Text="Docker" />
+    </BSInputMultiSelect>
+</div>
+
+<div class="mb-3">
+    <BSInputMultiSelect T="string"
+                        Id="msSkillsIG"
+                        Class="mb-3"
+                        Label="Skills"
+                        InputType="InputType.InputGroup"
+                        @bind-Value="_selectedSkills"
+                        AllowSelectAll="true"
+                        SelectAllText="All Skills"
+                        AllowFilter="true"
+                        Placeholder="Select skills...">
+        <BSMultiOption T="string" Value="@("CSharp")" Text="C#" />
+        <BSMultiOption T="string" Value="@("JavaScript")" Text="JavaScript" />
+        <BSMultiOption T="string" Value="@("TypeScript")" Text="TypeScript" />
+        <BSMultiOption T="string" Value="@("Python")" Text="Python" />
+        <BSMultiOption T="string" Value="@("Blazor")" Text="Blazor" />
+        <BSMultiOption T="string" Value="@("SQL")" Text="SQL" />
+        <BSMultiOption T="string" Value="@("Azure")" Text="Azure" />
+        <BSMultiOption T="string" Value="@("Docker")" Text="Docker" />
+    </BSInputMultiSelect>
+</div>
+
+<p>Selected: @(string.Join(", ", _selectedSkills ?? Enumerable.Empty<string>()))</p>
+
+@code {
+	private bool _isRequesting = false;
+
+private List<string> _selectedSkills = new();
+    private List<string> SelectedSkills
+    {
+        get => _selectedSkills;
+        set
+        {
+            _selectedSkills = value.ToList();
+        }
+    }
+}
+*@
+
+<CascadingValue Value="this">
+    @if (InputType == InputType.Standard)
+    {
+        <div class="@($"{Class}")" style="@(FitContent ? $"width: auto; {Style}" : $"{Style}")">
+            @if (!string.IsNullOrWhiteSpace(Label))
+            {
+                <label for="@Id" class="form-label mb-0" style="@($"width: {LabelWidth}px; {LabelStyle}")">@Label</label>
+            }
+            <div class=@($"dropdown d-{(FitContent ? "inline-block" : "block")} w-auto")>
+                <button id="@Id"
+                        type="button"
+                        class="form-select dropdown-toggle multi-select-toggle @(HasSelections ? "" : "text-muted")"
+                        data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside"
+                        aria-expanded="false"
+                        data-max-visible="@MaxVisibleOptions"
+                        disabled="@Disabled"
+                        style="@InputStyle"
+                        data-ref="@Refs["toggle"]">
+                    @DisplayText
+                </button>
+                <div class="dropdown-menu w-100">
+                    @if (AllowFilter)
+                    {
+                        <div class="px-3 pt-2 pb-1">
+                            <input type="text" class="form-control form-control-sm" placeholder="Filter..."
+                                   @bind="_filterText" @bind:event="oninput" />
+                        </div>
+                    }
+                    @if (AllowSelectAll)
+                    {
+                        <div class="form-check ms-3">
+                            <BSInputCheck Id="@($"{Id}-selectall")"
+                                          Label="@SelectAllText"
+                                          Value="@IsAllSelected"
+                                          ValueChanged="HandleSelectAll"
+                                          ValueExpression="() => IsAllSelected" Disabled="@Disabled" />
+                        </div>
+                        <hr class="dropdown-divider" />
+                    }
+                    <div class="multi-select-options" style="overflow-y: auto;" data-ref="@Refs["options"]">
+                        @ChildContent
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (InputType == InputType.InputGroup)
+    {
+        <div class="@($"input-group d-{(FitContent ? "inline-flex" : "flex")} flex-nowrap align-items-center {Class}")" style="@(FitContent ? $"width: auto; {Style}" : Style)">
+            <span class="input-group-text" style="@($"width: {LabelWidth}px; {LabelStyle}")">@Label</span>
+            <div class="dropdown flex-grow-1">
+                <button id="@Id"
+                        type="button"
+                        class="form-select dropdown-toggle multi-select-toggle @(HasSelections ? "" : "text-muted")"
+                        data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside"
+                        aria-expanded="false"
+                        data-max-visible="@MaxVisibleOptions"
+                        disabled="@Disabled"
+                        style="@InputStyle"
+                        data-ref="@Refs["toggle"]">
+                    @DisplayText
+                </button>
+                <div class="dropdown-menu w-100">
+                    @if (AllowFilter)
+                    {
+                        <div class="px-3 pt-2 pb-1">
+                            <input type="text" class="form-control form-control-sm" placeholder="Filter..."
+                                   @bind="_filterText" @bind:event="oninput" />
+                        </div>
+                    }
+                    @if (AllowSelectAll)
+                    {
+                        <div class="form-check ms-3">
+                            <BSInputCheck Id="@($"{Id}-selectall")"
+                                          Label="@SelectAllText"
+                                          Value="@IsAllSelected"
+                                          ValueChanged="HandleSelectAll"
+                                          ValueExpression="() => IsAllSelected"
+                                          Disabled="@Disabled" />
+                        </div>
+                        <hr class="dropdown-divider" />
+                    }
+                    <div class="multi-select-options" style="overflow-y: auto;" data-ref="@Refs["options"]">
+                        @ChildContent
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</CascadingValue>
+
+<JS For="this" Args="[MaxVisibleOptions, Refs]" />
+
+@code {
+    [CascadingParameter]
+    private EditContext? EditContext { get; set; }
+
+    [Parameter]
+    public InputType InputType { get; set; } = InputType.InputGroup;
+
+    [Parameter]
+    public string? Class { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string Label { get; set; }
+
+    [Parameter]
+    public ushort LabelWidth { get; set; } = 170;
+
+    [Parameter]
+    public string Style { get; set; } = "";
+
+    [Parameter]
+    public string LabelStyle { get; set; } = "";
+
+    [Parameter]
+    public string InputStyle { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public required string Id { get; set; }
+
+    [Parameter]
+    public string? Placeholder { get; set; } = "Select...";
+
+    [Parameter]
+    public List<T>? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<List<T>> ValueChanged { get; set; }
+
+    [Parameter]
+    public Expression<Func<List<T>>>? ValueExpression { get; set; }
+
+    [Parameter]
+    public EventCallback<ChangeEventArgs> OnInput { get; set; }
+
+    [Parameter]
+    public EventCallback<FocusEventArgs> OnFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<FocusEventArgs> OnBlur { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    [Parameter]
+    public EventCallback<ChangeEventArgs> OnChange { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnMouseOver { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnMouseOut { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; } = false;
+
+    [Parameter]
+    public bool FitContent { get; set; } = false;
+
+    [Parameter]
+    public bool AllowSelectAll { get; set; } = false;
+
+    [Parameter]
+    public string SelectAllText { get; set; } = "Select All";
+
+    [Parameter]
+    public int MaxVisibleOptions { get; set; } = 10;
+
+    [Parameter]
+    public bool AllowFilter { get; set; } = false;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private List<T> _selected = new();
+    private Dictionary<T, int> _optionRefCounts = new();
+    private Dictionary<T, string> _optionTexts = new();
+    private string _filterText = "";
+
+    private string DisplayText
+    {
+        get
+        {
+            int count = _selected.Count;
+            if (count == 0)
+            {
+                return Placeholder ?? "";
+            }
+
+            if (count == 1)
+            {
+                T single = _selected[0];
+                return _optionTexts.GetValueOrDefault(single) ?? single?.ToString() ?? "";
+            }
+
+            return $"{count} items selected";
+        }
+    }
+
+    private bool HasSelections => _selected.Any();
+    private bool IsAllSelected => _optionRefCounts.Count > 0
+        && _selected.Count == _optionRefCounts.Count
+        && _optionRefCounts.Keys.All(v => _selected.Contains(v));
+
+    protected override void OnParametersSet()
+    {
+        if (Value is not null && !_selected.SequenceEqual(Value))
+        {
+            _selected = Value.ToList();
+        }
+    }
+
+    internal void RegisterOption(T value, string text)
+    {
+        _optionRefCounts[value] = _optionRefCounts.GetValueOrDefault(value) + 1;
+        _optionTexts[value] = text;
+    }
+
+    internal void UnregisterOption(T value)
+    {
+        if (_optionRefCounts.TryGetValue(value, out int count))
+        {
+            if (count <= 1)
+            {
+                _optionRefCounts.Remove(value);
+                _optionTexts.Remove(value);
+            }
+            else
+            {
+                _optionRefCounts[value] = count - 1;
+            }
+        }
+    }
+
+    internal bool IsValueSelected(T value)
+    {
+        return _selected.Contains(value);
+    }
+
+    internal bool IsOptionVisible(string text)
+    {
+        if (!AllowFilter || string.IsNullOrWhiteSpace(_filterText))
+        {
+            return true;
+        }
+
+        return text.Contains(_filterText, StringComparison.OrdinalIgnoreCase);
+    }
+
+    internal async Task UpdateSelected(T value, bool selected)
+    {
+        if (selected)
+        {
+            if (!_selected.Contains(value))
+            {
+                _selected.Add(value);
+            }
+        }
+        else
+        {
+            _selected.Remove(value);
+        }
+
+        await ValueChanged.InvokeAsync(_selected);
+    }
+
+    private async Task HandleSelectAll(bool selected)
+    {
+        if (selected)
+        {
+            _selected = _optionRefCounts.Keys.ToList();
+        }
+        else
+        {
+            _selected.Clear();
+        }
+
+        await ValueChanged.InvokeAsync(_selected);
+    }
+}

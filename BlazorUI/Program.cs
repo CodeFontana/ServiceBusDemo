@@ -14,6 +14,7 @@ builder.Services.AddRazorComponents()
    });
 builder.Services.AddResponseCompression();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddJSComponents();
 builder.Services.AddScoped<ICookieService, CookieService>();
 
 if (bool.TryParse(builder.Configuration["ServiceBus:UseEmulator"], out bool useEmulator) && useEmulator)
@@ -40,9 +41,11 @@ if (app.Environment.IsDevelopment() == false)
     app.UseResponseCompression();
 }
 
+app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 app.UseAntiforgery();
+app.MapStaticAssets();
 app.MapRazorComponents<App>()
-  .AddInteractiveServerRenderMode();
+  .AddInteractiveServerRenderMode()
+  .AllowAnonymous();
 app.Run();

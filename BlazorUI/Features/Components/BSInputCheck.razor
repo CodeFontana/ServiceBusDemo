@@ -1,5 +1,11 @@
 ﻿@using System.Linq.Expressions
 
+@*
+Sample usage:
+<BSInputCheck Id="isMeltdownImminent" Label="Meltdown Imminent" LabelClass="form-control form-switch mb-3" @bind-Value="_reactor.meltdownImminent" Disabled="@_isRequesting" />
+<BSInputCheck Id="IsCriticalAlarm" Label="Critical Alarm" LabelClass="form-control form-switch" LabelStyle="width: auto;" @bind-Value="@_isCriticalAlarm" Disabled="@IsProcessing" />
+*@
+
 <label class="@($"{LabelClass}")" style="@LabelStyle">
     <InputCheckbox id="@Id"
                    class="form-check-input me-2"

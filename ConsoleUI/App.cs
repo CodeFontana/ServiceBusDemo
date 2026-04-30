@@ -8,6 +8,7 @@ using ProcessErrorEventArgs = ServiceBusLibrary.Services.ProcessErrorEventArgs;
 using ProcessMessageEventArgs = ServiceBusLibrary.Services.ProcessMessageEventArgs;
 
 namespace ConsoleUI;
+
 public class App : IHostedService
 {
     private readonly IHostApplicationLifetime _hostApplicationLifetime;
@@ -36,8 +37,7 @@ public class App : IHostedService
         {
             try
             {
-                await Task.Yield(); // https://github.com/dotnet/runtime/issues/36063
-                await Task.Delay(1000); // Additional delay for Microsoft.Hosting.Lifetime messages
+                await Task.Delay(250, cancellationToken);
                 await ExecuteAsync(_cts.Token);
             }
             catch (OperationCanceledException)
