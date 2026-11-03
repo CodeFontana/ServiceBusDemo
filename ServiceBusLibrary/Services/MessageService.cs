@@ -31,14 +31,16 @@ public class MessageService : IMessageService
         }
         catch (Exception ex)
         {
-            _logger.LogError("Failed to send message -- {ex.Message}", ex.Message);
+            _logger.LogError("Failed to send message: {Message}", ex.Message);
+            throw;
         }
     }
 
-    public async Task SendMessageToTopicAsync<T>(T serviceBusMessage, string topicName)
+    public async Task SendMessageToTopicAsync<T>(T serviceBusMessage, string topicName, string subscriptionName)
     {
         try
         {
+            await _client.EnsureTopicSubscriptionAsync(topicName, subscriptionName);
             IServiceBusSender sender = _client.CreateSender(topicName, isTopic: true);
             string messageBody = JsonSerializer.Serialize(serviceBusMessage);
             ServiceBusMessage message = new()

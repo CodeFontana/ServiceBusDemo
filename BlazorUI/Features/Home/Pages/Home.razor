@@ -16,16 +16,34 @@
                     <DataAnnotationsValidator />
                     <BSInputText Id="firstName" @bind-Value="Person!.FirstName" Label="First Name" />
                     <BSInputText Id="lastName" Class="my-2" @bind-Value="Person.LastName" Label="Last Name" />
-                    <button class="btn btn-primary" type="submit">Submit</button>
+                    <p class="text-body-secondary mb-2">Queue <code>@QueueName</code>. Topic <code>@TopicName</code>, subscription <code>@SubscriptionName</code>.</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-primary" type="submit" name="Target" value="queue">Send to queue</button>
+                        <button class="btn btn-outline-primary" type="submit" name="Target" value="topic">Send to topic</button>
+                    </div>
                 </EditForm>
+                @if (_status is not null)
+                {
+                    <div class="alert @(_statusIsError ? "alert-danger" : "alert-success") mt-3 mb-0" role="alert">@_status</div>
+                }
             </div>
         </div>
     </div>
 </section>
 
 @code {
+    private const string QueueName = "personqueue";
+    private const string TopicName = "personTopic";
+    private const string SubscriptionName = "sub1";
+
+    private string? _status;
+    private bool _statusIsError;
+
     [SupplyParameterFromForm(FormName = "personForm")]
     public PersonModel? Person { get; set; }
+
+    [SupplyParameterFromForm(FormName = "personForm")]
+    public string? Target { get; set; }
 
     protected override void OnInitialized()
     {
@@ -34,8 +52,41 @@
 
     private async Task PushMessage()
     {
-        await Queue.SendMessageToQueueAsync(Person, "personqueue");
-        await Queue.SendMessageToTopicAsync(Person, "personTopic");
-        Person = new();
+        if (Person is null)
+        {
+            _status = "Person is missing.";
+            _statusIsError = true;
+            return;
+        }
+
+        string name = $"{Person.FirstName} {Person.LastName}";
+
+        try
+        {
+            if (Target == "queue")
+            {
+                await Queue.SendMessageToQueueAsync(Person, QueueName);
+                _status = $"Sent {name} to queue {QueueName}.";
+            }
+            else if (Target == "topic")
+            {
+                await Queue.SendMessageToTopicAsync(Person, TopicName, SubscriptionName);
+                _status = $"Published {name} to topic {TopicName} for subscription {SubscriptionName}.";
+            }
+            else
+            {
+                _status = "Choose Send to queue or Send to topic.";
+                _statusIsError = true;
+                return;
+            }
+
+            _statusIsError = false;
+            Person = new();
+        }
+        catch (Exception ex)
+        {
+            _status = ex.Message;
+            _statusIsError = true;
+        }
     }
 }

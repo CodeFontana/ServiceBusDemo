@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
+using CodeFoxtrot.CloudLocal.Messaging;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -11,72 +12,66 @@ namespace FunctionApp;
 
 internal sealed class PersonFunctionTimer
 {
+    private const string QueueName = "personqueue";
+    private static readonly TimeSpan LockDuration = TimeSpan.FromSeconds(30);
+
     private readonly ILogger<PersonFunctionTimer> _logger;
-    private readonly IConfiguration _config;
     private readonly string _localBasePath;
 
     public PersonFunctionTimer(ILogger<PersonFunctionTimer> logger, IConfiguration config)
     {
         _logger = logger;
-        _config = config;
-        _localBasePath = config["ConnectionStrings:Local"] 
+        _localBasePath = config["ConnectionStrings:Local"]
             ?? throw new ArgumentNullException(nameof(config), "ConnectionStrings:Local configuration is missing.");
     }
 
     [Function("PersonFunctionTimerTrigger")]
     public async Task Run([TimerTrigger("*/5 * * * * *")] TimerInfo timer)
     {
-        string queuePath = Path.Combine(_localBasePath, "Queues", "personqueue");
-        string[] localMessages = Directory.GetFiles(queuePath, "*.json");
+        FileQueueMessenger messenger = new(_localBasePath);
+        await messenger.CreateQueueAsync(QueueName);
 
-        foreach (string file in localMessages)
+        while (true)
         {
-            try
+            IReadOnlyList<MessageDelivery> deliveries = await messenger.ReceiveAsync(QueueName, LockDuration, maxMessages: 32);
+
+            if (deliveries.Count == 0)
             {
-                // Read the JSON file content
-                string fileContent = await File.ReadAllTextAsync(file);
-
-                // Parse JSON to get MessageId and Body
-                using JsonDocument doc = JsonDocument.Parse(fileContent);
-                string? messageId = doc.RootElement.GetProperty("MessageId").GetString();
-                string? base64Body = doc.RootElement.GetProperty("Body").GetString();
-
-                if (string.IsNullOrWhiteSpace(messageId))
-                {
-                    throw new InvalidDataException("Unable to parse message - MessageId is missing or empty.");
-                }
-                else if (string.IsNullOrWhiteSpace(base64Body))
-                {
-                    throw new InvalidDataException("Unable to parse message - Body is missing or empty.");
-                }
-
-                // Decode the base64 Body to bytes
-                byte[] bodyBytes = Convert.FromBase64String(base64Body);
-
-                // Construct a ServiceBusReceivedMessage (arrive at same point as ServiceBusTrigger)
-                ServiceBusReceivedMessage message = ServiceBusModelFactory.ServiceBusReceivedMessage(
-                    body: new BinaryData(bodyBytes),
-                    messageId: messageId,
-                    contentType: Application.Json // Match ServiceBusTrigger content type
-                );
-
-                _logger.LogInformation("Message ID: {id}", message.MessageId);
-                _logger.LogInformation("Message Body: {body}", message.Body);
-                _logger.LogInformation("Message Content-Type: {contentType}", message.ContentType);
-
-                string json = Encoding.UTF8.GetString(message.Body);
-                PersonModel? person = JsonSerializer.Deserialize<PersonModel>(json);
-
-                if (person is not null)
-                {
-                    _logger.LogInformation("Received person: {firstName} {lastName}", person.FirstName, person.LastName);
-                    File.Delete(file);
-                }
+                break;
             }
-            catch (JsonException ex)
+
+            foreach (MessageDelivery delivery in deliveries)
             {
-                _logger.LogError("Failed to deserialize message: {message}", ex.Message);
+                try
+                {
+                    ServiceBusReceivedMessage message = ServiceBusModelFactory.ServiceBusReceivedMessage(
+                        body: new BinaryData(delivery.Body),
+                        messageId: delivery.MessageId,
+                        contentType: Application.Json
+                    );
+
+                    _logger.LogInformation("Message ID: {id}", message.MessageId);
+                    _logger.LogInformation("Message Body: {body}", message.Body);
+                    _logger.LogInformation("Message Content-Type: {contentType}", message.ContentType);
+
+                    string json = Encoding.UTF8.GetString(message.Body);
+                    PersonModel? person = JsonSerializer.Deserialize<PersonModel>(json);
+
+                    if (person is null)
+                    {
+                        await messenger.AbandonAsync(QueueName, delivery.MessageId, delivery.Receipt);
+                        continue;
+                    }
+
+                    _logger.LogInformation("Received person: {firstName} {lastName}", person.FirstName, person.LastName);
+                    await messenger.CompleteAsync(QueueName, delivery.MessageId, delivery.Receipt);
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError("Failed to deserialize message: {message}", ex.Message);
+                    await messenger.AbandonAsync(QueueName, delivery.MessageId, delivery.Receipt);
+                }
             }
         }
-    }   
+    }
 }

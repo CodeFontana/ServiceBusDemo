@@ -28,4 +28,9 @@ public sealed class AzureServiceBusClient : IServiceBusClient
         ServiceBusProcessorOptions processorOptions = options as ServiceBusProcessorOptions ?? new ServiceBusProcessorOptions();
         return new AzureServiceBusProcessor(_client.CreateProcessor(topicName, subscriptionName, processorOptions));
     }
+
+    public Task EnsureTopicSubscriptionAsync(string topicName, string subscriptionName)
+    {
+        return Task.CompletedTask;
+    }
 }
